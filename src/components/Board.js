@@ -1,51 +1,18 @@
-import React, { Component, createRef } from 'react';
 import * as config from './config';
 import _ from 'lodash';
 import Cell from './Cell';
-
-let canvas;
-let context;
 
 // util functions
 const randomInt = max => Math.floor(Math.random() * Math.floor(max));
 const roundToNearest = x => Math.floor(Math.ceil(x/config.cellWidth)*config.cellWidth, config.canvasWidth);
 
+class Board {
 
-class Board extends Component {
-
-    constructor(props) {
-        super(props);
-        this.canvasRef = createRef();
-        this.board = [];
-        this.state = {
-            tickSpeed: 300,
-        }
-    }
-
-    componentDidMount() {
-        this.createHTML5Canvas();
-        // create the inital board state with a random seed
+    constructor(context, canvas, board) {
+        this.context = context;
+        this.canvas = canvas;
+        this.board = board;
         this.createInitialBoardState();
-        // start game loop
-        window.requestAnimationFrame(this.gameTick);
-    }
-
-    createHTML5Canvas = () => {
-        // draw context for canvas
-        canvas = this.canvasRef.current;
-        context = canvas.getContext('2d');
-        context.fillStyle = config.boardBackgroundColour;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    gameTick = () => {
-        this.update();
-        this.draw();
-        setTimeout(
-            () => window.requestAnimationFrame(this.gameTick), 
-            this.state.tickSpeed
-        )
-       
     }
 
     createInitialBoardState = () => {
@@ -56,16 +23,16 @@ class Board extends Component {
             let rX = roundToNearest(randomInt(config.canvasWidth));
             let rY = roundToNearest(randomInt(config.canvasHeight));
             //console.log(rX, rY);
-            this.board.push(new Cell(context, rX, rY, config.cellColour))
+            this.board.push(new Cell(this.context, rX, rY, config.cellColour))
         }
     }
 
-    clearBoard() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     draw = () => {
-        this.clearBoard();
+        this.clear();
         this.board.forEach(cell => cell.draw())
     }
 
@@ -102,7 +69,7 @@ class Board extends Component {
             let liveNeighbours = this.detectCollisions(cell.x, cell.y);
             // reproduction
             if (liveNeighbours === 3) {
-                newBoard.push(new Cell(context, cell.x, cell.y, config.cellColour)); // add the cell from the board
+                newBoard.push(new Cell(this.context, cell.x, cell.y, config.cellColour)); // add the cell from the board
             }
         })
 
@@ -116,7 +83,7 @@ class Board extends Component {
             for (let j = 0; j < config.canvasHeight; j = j + config.cellHeight) {
                 // can't find the cell in the board, it is dead
                 if (!this.board.find(cell => cell.x === i && cell.y === j)) {
-                    deadBoard.push(new Cell(context, i, j, config.cellColour));
+                    deadBoard.push(new Cell(this.context, i, j, config.cellColour));
                 }
             }
         }
@@ -151,11 +118,6 @@ class Board extends Component {
         return searchResults.length;
     }
 
-    render() {
-        return (
-            <canvas ref={this.canvasRef} className='canvas' width={config.canvasWidth} height={config.canvasHeight}></canvas>
-        );
-    }
 }
 
 export default Board;
