@@ -1,30 +1,21 @@
 import * as config from './config';
+import { roundToNearest } from './utils';
 import _ from 'lodash';
 import Cell from './Cell';
+import Pattern from './Pattern';
 
-// util functions
-const randomInt = max => Math.floor(Math.random() * Math.floor(max));
-const roundToNearest = x => Math.floor(Math.ceil(x/config.cellWidth)*config.cellWidth, config.canvasWidth);
 
 class Board {
 
-    constructor(context, canvas, board) {
+    constructor(context, canvas, board, pattern) {
         this.context = context;
         this.canvas = canvas;
         this.board = board;
-        this.createInitialBoardState();
+        this.createInitialBoardState(pattern);
     }
 
-    createInitialBoardState = () => {
-
-        let numCells = randomInt(config.initialNumCells) + 1;
-        // Create a board of a random number of live cells
-        for (let i = 0; i < numCells; i++) {
-            let rX = roundToNearest(randomInt(config.canvasWidth));
-            let rY = roundToNearest(randomInt(config.canvasHeight));
-            //console.log(rX, rY);
-            this.board.push(new Cell(this.context, rX, rY, config.cellColour))
-        }
+    createInitialBoardState = (pattern) => {
+        this.board = new Pattern(pattern, this.context);
     }
 
     clear() {
